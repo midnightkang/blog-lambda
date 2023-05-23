@@ -21,5 +21,8 @@
   },
   "dependencies": {
     "source-map-support": "^0.5.21"
+  },
+  "optionalDependencies": {
+    "aws-sdk": "2.1055.0"
   }
 }

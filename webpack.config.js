@@ -22,8 +22,8 @@ module.exports = {
   //웹팩의 결과물 생성을 설정.
   output: {
     //보통 comminjs2표준을 따르도록 한다.
-    //commonjs는 ECMAScript에서 정의한 모듈 규격 중 하나이고 보통 웹 브라우저의 자바스크립트 엔진에서 이 표준을 지킨다. 
-    //Node.js는 여기에 export문법을 추가해 약간 다른 형태의 모듈 표준을 구현하였고 이를 commonjs2로 정의했다. 
+    //commonjs는 ECMAScript에서 정의한 모듈 규격 중 하나이고 보통 웹 브라우저의 자바스크립트 엔진에서 이 표준을 지킨다.
+    //Node.js는 여기에 export문법을 추가해 약간 다른 형태의 모듈 표준을 구현하였고 이를 commonjs2로 정의했다.
     libraryTarget: "commonjs2",
     //관례대로 .webpack디렉토리 하위에 entry로 지정된 파일의 이름을 사용해 [name].js형태로 결과물을 빌드한다.
     path: path.join(__dirname, ".webpack"),
@@ -44,5 +44,6 @@ module.exports = {
       },
     ],
   },
-  // stats: "normal",
+  //중간 수준의 빌드 정보를 출력(none,normal,verbose)
+  stats: "normal",
 };
