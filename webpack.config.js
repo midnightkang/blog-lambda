@@ -46,4 +46,7 @@ module.exports = {
   },
   //중간 수준의 빌드 정보를 출력(none,normal,verbose)
   stats: "normal",
+
+  //불필요한 패키지 용량 증가를 피하기 위해서 다음 의존성을 제외
+  externals: [/aws-sdk/],
 };
