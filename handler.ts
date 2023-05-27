@@ -16,6 +16,19 @@ export const createPost: APIGatewayProxyHandlerV2 = async (event) => {
   return { title };
 };
 
+export const readPost: APIGatewayProxyHandlerV2<Post> = async (event) => {
+  if (!event.pathParameters || !event.pathParameters.title) {
+    return { statusCode: 404 };
+  }
+
+  const post = await storage.select(event.pathParameters.title);
+
+  if(!post){
+    return { statusCode: 404};
+  }
+  return post;
+};
+
 export const updatePost: APIGatewayProxyHandlerV2 = async (event) => {
   if (!event.body || !event.pathParameters || !event.pathParameters.title) {
     return { statusCode: 404 };
@@ -28,19 +41,6 @@ export const updatePost: APIGatewayProxyHandlerV2 = async (event) => {
     return { statusCode: 400 };
   }
   return { title };
-};
-
-export const readPost: APIGatewayProxyHandlerV2<Post> = async (event) => {
-  if (!event.pathParameters || !event.pathParameters.title) {
-    return { statusCode: 404 };
-  }
-
-  const post = await storage.select(event.pathParameters.title);
-
-  if(!post){
-    return { statusCode: 404};
-  }
-  return post;
 };
 
 export const deletePost: APIGatewayProxyHandlerV2 = async (event) => {

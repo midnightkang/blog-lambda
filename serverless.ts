@@ -43,6 +43,7 @@ const config: AWS = {
     region: "ap-northeast-2",
     iam: { role: { statements: [PostTableRoleStatement] } },
   },
+  //endpoint설정.
   functions: {
     createPost: {
       handler: "handler.createPost",

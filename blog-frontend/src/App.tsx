@@ -1,26 +1,194 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+import nl2br from "react-nl2br";
 
-function App() {
+interface Post {
+  title: string;
+  content: string;
+  created: string;
+  modified?: string;
+}
+interface PostListItem {
+  title: string;
+  created: string;
+}
+function formatDate(data: string): string {
+  return new Date(Date.parse(data)).toLocaleString("ko");
+}
+async function createPost(title: string, content: string): Promise<{ title: string }> {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    fetch(`/api/post`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content }),
+    })
+      //json메서드는 Response 객체의 메서드 중 하나이며, HTTP 응답의 본문을 JSON 형식으로 파싱하여 JavaScript 객체로 반환
+      .then((r) => r.json())
+  );
+}
+
+async function readPost(title: string): Promise<Post> {
+  return fetch(`/api/post/${title}`).then((r) => r.json());
+}
+
+async function updatePost(oldtitle: string, title: string, content: string): Promise<boolean> {
+  return fetch(`/api/post/${oldtitle}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, content }),
+  }).then((r) => r.json());
+}
+async function deletePost(title: string): Promise<void> {
+  const response = await fetch(`/api/post/${title}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error(`글 삭제 에러`);
+  }
+}
+
+async function listPosts(): Promise<PostListItem[]> {
+  return fetch(`/api/post/`).then((r) => r.json());
+}
+
+//글 목록 컴포넌트.
+function PostList({ postItems, onView, onNew }: { postItems: PostListItem[]; onView: (title: string) => void; onNew: () => void }) {
+  return (
+    <div>
+      <ul>
+        {postItems.map((item) => (
+          //부모나 자식이 직접 선언되는 경우에는 식별자를 작동으로 생성 할 수 있지만
+          //반복해서 생성되는 li 요소의 경우에는 직접 고유 키를 지정해야 한다. title은 고유하므로 이를 고유 키로 지정한다.
+          //이 키는 추후 각 구성 요소가 다시 렌더링될 필요가 있을지 검사할 때 사용된다.
+          <li key={item.title} onClick={() => onView(item.title)}>
+            [{formatDate(item.created)}]{item.title}
+          </li>
+        ))}
+      </ul>
+      <button onClick={onNew}>새 글</button>
     </div>
   );
+}
+//글 내용 컴포넌트에서 사용할 글 내용 생성 혹은 수정시간 컴포넌트
+function DateField({ label, date }: { label: string; date?: string }) {
+  //date값이 전달되지 않았다면 null을 반환. react는 null이나 false는 렌더링하지 않는다.
+  if (!date) {
+    return null;
+  }
+  return (
+    //<></>로 감싸서 상위 컴포넌트에 자식 컴포넌트로 추가.
+    <>
+      <dt>{label}</dt>
+      <dd>{formatDate(date)}</dd>
+    </>
+  );
+}
+//글 내용 컴포넌트
+function Viewer({ post, onStartEdit, onBack }: { post: Post; onStartEdit: () => void; onBack: () => void }) {
+  return (
+    <div>
+      <h1>{post.title}</h1>
+      <dl>
+        <DateField label="생성시각" date={post.created} />
+        <DateField label="수정시각" date={post.created} />
+        <dt>내용</dt>
+        <dd>
+          <p>{nl2br(post.content)}</p>
+        </dd>
+      </dl>
+      <button onClick={onBack}>목록</button>
+      <button onClick={onStartEdit}>수정</button>
+    </div>
+  );
+}
+
+//글 수정 컴포넌트
+function Editor({
+  post,
+  onSave,
+  onCancel,
+  onDelete,
+}: {
+  post: Post | null;
+  onSave: (title: string, content: string) => void;
+  onCancel: () => void;
+  onDelete: () => void;
+}) {
+  //title상태의 초기값은 post.title 혹은 ""
+  const [title, setTitle] = React.useState<string>(post?.title ?? "");
+  //content상태의 초기값은 post.content 혹은 ""
+  const [content, setContent] = React.useState<string>(post?.content ?? "");
+  return (
+    <div>
+      <dl>
+        <dt>제목</dt>
+        <dd>
+          <input type="text" defaultValue={title} placeholder="글 제목" onChange={(event) => setTitle(event.target.value)} />
+        </dd>
+        <DateField label="생성" date={post?.created} />
+        <DateField label="수정" date={post?.modified} />
+        <dt>내용</dt>
+        <dd>
+          <textarea defaultValue={content} placeholder="글 내용" onChange={(event) => setContent(event.target.value)} />
+        </dd>
+      </dl>
+      <button onClick={onCancel}>취소</button>
+      <button onClick={() => onSave(title, content)}>저장</button>
+    </div>
+  );
+}
+function App() {
+  const [postItems, setPostItems] = React.useState<PostListItem[]>([]);
+  const [post, setPost] = React.useState<Post | null>(null);
+  const [editMode, setEditMode] = React.useState<boolean>(false);
+
+  //글 목록을 가져와서 postItems 상태 갱신
+  function refreshPostList() {
+    listPosts().then(setPostItems).catch(alert);
+  }
+  //초기 마운트시에만 실행 (이 컴포넌트의 3가지 상태가 갱신될 때마다 재렌더링 될 텐데 그때 이 부분은 실행 x)
+  React.useEffect(() => {
+    refreshPostList();
+  }, []);
+
+  if (!editMode) {
+    if (post) {
+      return <Viewer post={post} onStartEdit={() => setEditMode(true)} onBack={() => setPost(null)} />;
+    }
+    return (
+      <PostList
+        postItems={postItems}
+        onView={(title) => {
+          setEditMode(false);
+          readPost(title).then(setPost).catch(alert);
+        }}
+        onNew={() => {
+          setPost(null);
+          setEditMode(true);
+        }}
+      />
+    );
+  }
+  return <Editor
+    post={post}
+    onSave={(title,content)=>
+      (post ? updatePost(post.title, title, content): createPost(title,content))
+        .then(()=>readPost(title).then(setPost).catch(alert))
+        .then(()=>setEditMode(false))
+        .then(()=>refreshPostList())
+        .catch(alert)
+    }
+    onCancel={()=>setEditMode(false)}
+    onDelete={()=>
+      post 
+        ? deletePost(post.title)
+          .then(()=>setPost(null))
+          .then(()=>setEditMode(false))
+          .then(()=>refreshPostList())
+          .catch(alert)
+        : 0
+    }
+  />
 }
 
 export default App;
