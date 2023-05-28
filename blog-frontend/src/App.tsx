@@ -1,6 +1,7 @@
 import React from "react";
 import "./App.css";
 import nl2br from "react-nl2br";
+import { Link, useParams, useNavigate, BrowserRouter, Route, Routes } from "react-router-dom";
 
 interface Post {
   title: string;
@@ -52,7 +53,7 @@ async function listPosts(): Promise<PostListItem[]> {
 }
 
 //글 목록 컴포넌트.
-function PostList({ postItems, onView, onNew }: { postItems: PostListItem[]; onView: (title: string) => void; onNew: () => void }) {
+function PostList({ postItems}: { postItems: PostListItem[]}) {
   return (
     <div>
       <ul>
@@ -60,12 +61,15 @@ function PostList({ postItems, onView, onNew }: { postItems: PostListItem[]; onV
           //부모나 자식이 직접 선언되는 경우에는 식별자를 작동으로 생성 할 수 있지만
           //반복해서 생성되는 li 요소의 경우에는 직접 고유 키를 지정해야 한다. title은 고유하므로 이를 고유 키로 지정한다.
           //이 키는 추후 각 구성 요소가 다시 렌더링될 필요가 있을지 검사할 때 사용된다.
-          <li key={item.title} onClick={() => onView(item.title)}>
-            [{formatDate(item.created)}]{item.title}
+          //Link의 to속성을 이용해서 글 항목을 클릭했을 때 글에 해당하는 주소로 이동하도록 함.
+          <li key={item.title}>
+            <Link to={`/${item.title}`}>
+              [{formatDate(item.created)}]{item.title}
+            </Link>
           </li>
         ))}
       </ul>
-      <button onClick={onNew}>새 글</button>
+      <Link to="/_new">새 글</Link>
     </div>
   );
 }
@@ -84,7 +88,7 @@ function DateField({ label, date }: { label: string; date?: string }) {
   );
 }
 //글 내용 컴포넌트
-function Viewer({ post, onStartEdit, onBack }: { post: Post; onStartEdit: () => void; onBack: () => void }) {
+function Viewer({ post}: { post: Post }) {
   return (
     <div>
       <h1>{post.title}</h1>
@@ -96,8 +100,9 @@ function Viewer({ post, onStartEdit, onBack }: { post: Post; onStartEdit: () => 
           <p>{nl2br(post.content)}</p>
         </dd>
       </dl>
-      <button onClick={onBack}>목록</button>
-      <button onClick={onStartEdit}>수정</button>
+      <Link to="/">글 목록</Link>
+      &nbsp;&nbsp;
+      <Link to={`/${post.title}/edit`}>수정</Link>
     </div>
   );
 }
@@ -137,58 +142,83 @@ function Editor({
     </div>
   );
 }
-function App() {
-  const [postItems, setPostItems] = React.useState<PostListItem[]>([]);
-  const [post, setPost] = React.useState<Post | null>(null);
-  const [editMode, setEditMode] = React.useState<boolean>(false);
 
-  //글 목록을 가져와서 postItems 상태 갱신
-  function refreshPostList() {
+function PostListPage(){
+  const [postItems,setPostItems]= React.useState<PostListItem[]>([]);
+  React.useEffect(()=>{
     listPosts().then(setPostItems).catch(alert);
-  }
-  //초기 마운트시에만 실행 (이 컴포넌트의 3가지 상태가 갱신될 때마다 재렌더링 될 텐데 그때 이 부분은 실행 x)
-  React.useEffect(() => {
-    refreshPostList();
-  }, []);
+  },[]);
+  return <PostList postItems={postItems}/>;
+}
 
-  if (!editMode) {
-    if (post) {
-      return <Viewer post={post} onStartEdit={() => setEditMode(true)} onBack={() => setPost(null)} />;
-    }
-    return (
-      <PostList
-        postItems={postItems}
-        onView={(title) => {
-          setEditMode(false);
-          readPost(title).then(setPost).catch(alert);
-        }}
-        onNew={() => {
-          setPost(null);
-          setEditMode(true);
-        }}
-      />
-    );
+function PostViewPage(){
+  const {title} = useParams<"title">();
+  const [post,setPost] = React.useState<Post|null>(null);
+  React.useEffect(()=>{
+    readPost(title!).then(setPost).catch(alert);
+  },[title]);
+  if(!post){
+    return <p>불러오는 중. . .</p>;
   }
-  return <Editor
-    post={post}
-    onSave={(title,content)=>
-      (post ? updatePost(post.title, title, content): createPost(title,content))
-        .then(()=>readPost(title).then(setPost).catch(alert))
-        .then(()=>setEditMode(false))
-        .then(()=>refreshPostList())
-        .catch(alert)
-    }
-    onCancel={()=>setEditMode(false)}
-    onDelete={()=>
-      post 
-        ? deletePost(post.title)
-          .then(()=>setPost(null))
-          .then(()=>setEditMode(false))
-          .then(()=>refreshPostList())
+  return <Viewer post={post}/>;
+}
+
+function PostNewPage(){
+  const navigate = useNavigate();
+  return (
+    <Editor
+      post={null}
+      onSave={(title,content)=>
+        createPost(title,content)
+          .then(()=>navigate(`/${title}`,{replace:true}))
           .catch(alert)
-        : 0
-    }
-  />
+      }
+      onCancel={()=>navigate(-1)}
+      onDelete={()=>{}}
+    />
+  )
+}
+
+function PostEditPage(){
+  const navigate = useNavigate();
+  const {title}=useParams<"title">();
+  const [post,setPost]=React.useState<Post|null>(null);
+
+  React.useEffect(()=>{
+    readPost(title!).then(setPost).catch(alert);
+  },[title]);
+
+  if(!post){
+    return <p>불러오는 중. . .</p>;
+  }
+  return (
+    <Editor
+      post={post}
+      onSave={(title,content)=>
+        updatePost(post.title,title,content)
+          .then(()=>navigate(`/${title}`,{replace:true}))
+          .catch(alert)  
+      }
+      onCancel={()=>navigate(-1)}
+      onDelete={()=>
+        deletePost(post.title)
+          .then(()=>navigate(`/`,{replace:true}))
+          .catch(alert)
+      }
+    />
+  );
+}
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="*" element={<PostListPage />} />
+        <Route path="/_new" element={<PostNewPage />} />
+        <Route path="/:title" element={<PostViewPage />} />
+        <Route path="/:title/edit" element={<PostEditPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
