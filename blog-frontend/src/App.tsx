@@ -18,7 +18,7 @@ function formatDate(data: string): string {
 }
 async function createPost(title: string, content: string): Promise<{ title: string }> {
   return (
-    fetch(`/api/post`, {
+    fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/post`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, content }),
@@ -29,18 +29,18 @@ async function createPost(title: string, content: string): Promise<{ title: stri
 }
 
 async function readPost(title: string): Promise<Post> {
-  return fetch(`/api/post/${title}`).then((r) => r.json());
+  return fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/post/${title}`).then((r) => r.json());
 }
 
 async function updatePost(oldtitle: string, title: string, content: string): Promise<boolean> {
-  return fetch(`/api/post/${oldtitle}`, {
+  return fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/post/${oldtitle}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, content }),
   }).then((r) => r.json());
 }
 async function deletePost(title: string): Promise<void> {
-  const response = await fetch(`/api/post/${title}`, {
+  const response = await fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/post/${title}`, {
     method: "DELETE",
   });
   if (!response.ok) {
