@@ -23,7 +23,7 @@ const BlogStaticFileBucketOAIPolicy = {
         {
           Action: "s3:GetObject",
           Effect: "Allow",
-          Resource: `arn:Aws:s3:::${process.env.WEBSITE_BUCKET_NAME}/*`,
+          Resource: `arn:aws:s3:::${process.env.WEBSITE_BUCKET_NAME}/*`,
           Principal: {
             CanonicalUser: { "Fn::GetAtt": ["OAI", "S3CanonicalUserId"] },
           },
