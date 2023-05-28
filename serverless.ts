@@ -37,6 +37,19 @@ const config: AWS = {
   service: "blog-lambda",
   frameworkVersion: "3",
   provider: {
+    httpApi:{
+      //서버에서 CORS 요청에 대응하기 위해서는 단순 요청과 프리플라이트 요청 모두 대응해야 한다. 
+      //이를 구현하려면 HTTP요청을 처리하는 각 함수에 CORS헤더를 적절히 반환하도록 구현하고 프리플라이트 요청을 위한 OPTIONS 요청을 처리하는 함수를 추가해야 한다.
+      //API Gateway에서는 다음과 같이 provider.httpApi.cors에 설정을 추가하는 것으로 CORS 요청에 대응할 수 있다. 
+      //함수 단위의 CORS 설정이 필요하다면 REST API를 사용하거나 직접 구현해야 함.
+      cors:{
+        allowedOrigins:[process.env.CORS_ALLOW_ORIGIN!],
+        allowedMethods:["GET","POST","PUT","DELETE"],
+        allowedHeaders:["Content-Type"],
+        //fetch요청에서 쿠키나 Authorization헤더를 보내는 것을 허용.
+        allowCredentials:true
+      }
+    },
     name: "aws",
     runtime: "nodejs14.x",
     stage: "dev",
