@@ -65,6 +65,8 @@ const BlogStaticFileCdn = {
       DefaultCacheBehavior: {
         TargetOriginId: "S3Origin",
         ViewerProtocolPolicy: "redirect-to-https",
+        Compress: true,
+        CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6",
       },
       HttpVersion: "http2",
       Aliases: [`${process.env.SUB_DOMAIN}.${process.env.ROOT_DOMAIN}`],
