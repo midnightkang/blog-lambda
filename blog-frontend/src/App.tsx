@@ -139,6 +139,7 @@ function Editor({
       </dl>
       <button onClick={onCancel}>취소</button>
       <button onClick={() => onSave(title, content)}>저장</button>
+      {post && <button onClick={onDelete}>삭제</button>}
     </div>
   );
 }
