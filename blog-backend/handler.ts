@@ -51,6 +51,6 @@ export const deletePost: APIGatewayProxyHandlerV2 = async (event) => {
   return { statusCode: 200 };
 }
 
-export const listPosts: APIGatewayProxyHandlerV2<PostListItem[]> = async () => {
+export const listPost: APIGatewayProxyHandlerV2<PostListItem[]> = async () => {
   return storage.list();
 }

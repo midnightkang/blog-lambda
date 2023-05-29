@@ -199,5 +199,7 @@ export async function remove(title: string): Promise<void> {
 
 //글 목록 조회.
 export async function list(): Promise<PostListItem[]> {
-  return (await fetchPosts()).entries;
+  const posts = await fetchPosts()
+  const entries = posts.entries
+  return entries;
 }

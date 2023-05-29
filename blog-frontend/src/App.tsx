@@ -48,8 +48,8 @@ async function deletePost(title: string): Promise<void> {
   }
 }
 
-async function listPosts(): Promise<PostListItem[]> {
-  return fetch(`/api/post/`).then((r) => r.json());
+async function listPost(): Promise<PostListItem[]> {
+  return fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/post`).then((r) => r.json());
 }
 
 //글 목록 컴포넌트.
@@ -146,7 +146,7 @@ function Editor({
 function PostListPage(){
   const [postItems,setPostItems]= React.useState<PostListItem[]>([]);
   React.useEffect(()=>{
-    listPosts().then(setPostItems).catch(alert);
+    listPost().then(setPostItems).catch(alert);
   },[]);
   return <PostList postItems={postItems}/>;
 }
