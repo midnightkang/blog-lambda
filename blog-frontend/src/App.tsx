@@ -33,6 +33,7 @@ async function readPost(title: string): Promise<Post> {
 }
 
 async function updatePost(oldtitle: string, title: string, content: string): Promise<boolean> {
+  console.log("updatePost 함수 호출");
   return fetch(`${process.env.REACT_APP_API_ENDPOINT}/api/post/${oldtitle}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

@@ -3,3 +3,7 @@ curl -XPOST "https://6ojnnjutpl.execute-api.ap-northeast-2.amazonaws.com/api/pos
   -d '{"title": "테스트", "content": "블로그 첫 글"}'
 
 curl -XGET "https://6ojnnjutpl.execute-api.ap-northeast-2.amazonaws.com/api/post" \
+
+curl -XPUT "https://6ojnnjutpl.execute-api.ap-northeast-2.amazonaws.com/api/post/%ED%85%8C%EC%8A%A4%ED%8A%B8" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "테스트", "content": "블로그 첫 글2"}'

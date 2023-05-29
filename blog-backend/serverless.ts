@@ -68,7 +68,7 @@ const config: AWS = {
     },
     updatePost: {
       handler: "handler.updatePost",
-      events: [{ httpApi: { path: "/api/post", method: "put" } }],
+      events: [{ httpApi: { path: "/api/post/{title}", method: "put" } }],
     },
     deletePost: {
       handler: "handler.deletePost",
